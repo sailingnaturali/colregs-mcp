@@ -20,3 +20,40 @@ def entry_matches(match: dict, eff: dict) -> bool:
     if "length_gte" in match and not (eff["length_m"] >= match["length_gte"]):
         return False
     return True
+
+
+def required_signals(reqs: Requirements, profile: Profile) -> dict:
+    situation = derive_situation(profile)
+    eff = {
+        "situation": situation,
+        "condition": profile.condition,
+        "length_m": profile.length_m,
+        "regime": profile.regime,
+    }
+    lights: list[dict] = []
+    light_options: list[list[dict]] = []
+    shapes: list[dict] = []
+    forbids: list[str] = []
+    citations: list[str] = []
+
+    for entry in reqs.entries:
+        if not entry_matches(entry.get("match", {}), eff):
+            continue
+        lights.extend(entry.get("lights", []))
+        light_options.extend(entry.get("light_options", []))
+        shapes.extend(entry.get("shapes", []))
+        forbids.extend(entry.get("forbids", []))
+
+    for sig in lights + shapes + [l for grp in light_options for l in grp]:
+        if sig.get("rule") and sig["rule"] not in citations:
+            citations.append(sig["rule"])
+
+    forbids = list(dict.fromkeys(forbids))
+    return {
+        "situation": situation,
+        "lights": lights,
+        "light_options": light_options,
+        "shapes": shapes,
+        "forbids": forbids,
+        "citations": citations,
+    }
