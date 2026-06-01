@@ -1,5 +1,5 @@
 from pathlib import Path
-from colregs_mcp.tools import get_rule, search_rules
+from colregs_mcp.tools import get_rule, search_rules, resolve_regime, required_signals_tool, check_compliance_tool
 from colregs_mcp.vault import Vault
 
 FIXTURE = Path(__file__).parent / "fixtures" / "vault"
@@ -26,3 +26,19 @@ def test_search_rules_tool_returns_citations():
     out = search_rules(_vault(), query="conical shape apex")
     assert out["hits"][0]["number"] == "25"
     assert out["hits"][0]["citation"] == "Rule 25"
+
+def test_resolve_regime_tool():
+    out = resolve_regime(_vault(), lat=48.89, lon=-123.39)
+    assert out["regime"] == "canadian"
+
+def test_required_signals_tool_motorsailing():
+    out = required_signals_tool(_vault(), profile={
+        "vessel_class": "sailing", "length_m": 14.9,
+        "propulsion": "sail_and_machinery", "regime": "canadian", "condition": "night"})
+    assert {l["id"] for l in out["lights"]} == {"masthead_steaming", "sidelights", "sternlight"}
+
+def test_check_compliance_tool_flags_missing_anchor_light():
+    out = check_compliance_tool(_vault(), profile={
+        "vessel_class": "anchored", "length_m": 14.9, "propulsion": "machinery",
+        "regime": "canadian", "condition": "night"}, observed=["sidelights"])
+    assert out["ok"] is False and "anchor_light" in out["missing"]
