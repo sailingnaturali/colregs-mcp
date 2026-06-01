@@ -1,5 +1,5 @@
 from pathlib import Path
-from colregs_mcp.tools import get_rule
+from colregs_mcp.tools import get_rule, search_rules
 from colregs_mcp.vault import Vault
 
 FIXTURE = Path(__file__).parent / "fixtures" / "vault"
@@ -21,3 +21,8 @@ def test_get_rule_all_regimes_when_regime_omitted():
 def test_get_rule_missing():
     out = get_rule(_vault(), number="99", regime="international")
     assert out["found"] is False
+
+def test_search_rules_tool_returns_citations():
+    out = search_rules(_vault(), query="conical shape apex")
+    assert out["hits"][0]["number"] == "25"
+    assert out["hits"][0]["citation"] == "Rule 25"
