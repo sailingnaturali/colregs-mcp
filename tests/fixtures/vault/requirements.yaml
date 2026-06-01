@@ -1,0 +1,6 @@
+version: 1
+entries:
+  - id: anchored-under-50m-night
+    match: { situation: anchored, condition: night, length_lt: 50 }
+    lights: [{ id: anchor_light, desc: "all-round white, where best seen", rule: "Rule 30(a)" }]
+    forbids: [sidelights, sternlight, masthead_steaming, tricolor]

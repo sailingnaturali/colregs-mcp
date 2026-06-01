@@ -1,0 +1,4 @@
+{ "type": "FeatureCollection", "features": [
+  { "type": "Feature", "properties": { "regime": "canadian" },
+    "geometry": { "type": "Polygon", "coordinates": [[[-124.0,48.6],[-122.9,48.6],[-122.9,49.4],[-124.0,49.4],[-124.0,48.6]]] } }
+] }
