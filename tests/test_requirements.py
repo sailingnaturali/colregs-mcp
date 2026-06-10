@@ -56,3 +56,13 @@ def test_sailing_under_20m_offers_sidelights_or_tricolor():
 def test_constrained_by_draught_three_reds():
     out = required_signals(_reqs(), Profile("constrained_by_draught", 14.9, "machinery", "international", "night"))
     assert len(out["lights"]) == 3
+
+def test_required_signals_matched_flag_true_when_covered():
+    out = required_signals(_reqs(), Profile("anchored", 14.9, "machinery", "canadian", "night"))
+    assert out["matched"] is True
+
+def test_required_signals_matched_flag_false_when_unmodeled():
+    out = required_signals(_reqs(), Profile("power_driven", 14.9, "machinery", "international",
+                                            "restricted_visibility"))
+    assert out["matched"] is False
+    assert out["lights"] == []

@@ -14,6 +14,7 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
 from colregs_mcp import tools
+from colregs_mcp.models import VESSEL_CLASSES
 from colregs_mcp.vault import Vault
 
 logger = logging.getLogger(__name__)
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 _PROFILE_SCHEMA = {
     "type": "object",
     "properties": {
-        "vessel_class": {"type": "string"},
+        "vessel_class": {"type": "string", "enum": list(VESSEL_CLASSES)},
         "length_m": {"type": "number"},
         "propulsion": {"type": "string", "enum": ["sail", "machinery", "sail_and_machinery"]},
         "regime": {"type": "string", "enum": ["international", "inland", "canadian"]},

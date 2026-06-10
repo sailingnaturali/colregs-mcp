@@ -36,9 +36,11 @@ def required_signals(reqs: Requirements, profile: Profile) -> dict:
     forbids: list[str] = []
     citations: list[str] = []
 
+    matched = False
     for entry in reqs.entries:
         if not entry_matches(entry.get("match", {}), eff):
             continue
+        matched = True
         lights.extend(entry.get("lights", []))
         light_options.extend(entry.get("light_options", []))
         shapes.extend(entry.get("shapes", []))
@@ -51,6 +53,7 @@ def required_signals(reqs: Requirements, profile: Profile) -> dict:
     forbids = list(dict.fromkeys(forbids))
     return {
         "situation": situation,
+        "matched": matched,
         "lights": lights,
         "light_options": light_options,
         "shapes": shapes,

@@ -38,3 +38,36 @@ def test_sailing_no_lights_reports_unsatisfied_option():
                            observed=[])
     assert out["ok"] is False
     assert out["unsatisfied_options"]            # at least one group unmet
+
+
+# --- R1: an unmodeled situation must NOT report compliant (issues #1, #2) ---
+
+def test_restricted_visibility_is_not_modeled_not_compliant():
+    # No requirements.yaml row covers restricted_visibility — must flag, never pass.
+    out = check_compliance(_reqs(), Profile("power_driven", 14.9, "machinery", "international",
+                                            "restricted_visibility"), observed=["masthead_steaming"])
+    assert out["ok"] is False
+    assert out["not_modeled"] is True
+    assert "do not rely" in out["verdict"]
+
+def test_oversize_power_vessel_at_night_is_not_modeled():
+    # Only length_lt: 50 rows exist; a 60 m power vessel falls in no band → not modeled.
+    out = check_compliance(_reqs(), Profile("power_driven", 60.0, "machinery", "international",
+                                            "night"), observed=[])
+    assert out["ok"] is False
+    assert out["not_modeled"] is True
+
+def test_restricted_manoeuvrability_not_silently_power_driven():
+    # A RAM vessel showing plain steaming lights must not read as compliant by falling
+    # through to the power_driven row (the SPEC↔_SPECIAL vocab CRIT).
+    out = check_compliance(_reqs(), Profile("restricted_manoeuvrability", 30.0, "machinery",
+                                            "international", "night"),
+                           observed=["masthead_steaming", "sidelights", "sternlight"])
+    assert out["ok"] is False
+    assert out["not_modeled"] is True
+
+def test_modeled_situation_sets_not_modeled_false():
+    out = check_compliance(_reqs(), Profile("anchored", 14.9, "machinery", "canadian", "night"),
+                           observed=["anchor_light"])
+    assert out["not_modeled"] is False
+    assert out["ok"] is True

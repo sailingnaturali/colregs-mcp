@@ -9,6 +9,23 @@ from colregs_mcp.vault import Requirements
 
 def check_compliance(reqs: Requirements, profile: Profile, observed) -> dict:
     req = required_signals(reqs, profile)
+
+    # R1 — absence is never "all clear." If no requirements.yaml row covers this situation
+    # (unmodeled vessel_class/condition/length band), we have no basis to call it compliant.
+    # Fail toward caution with an explicit not_modeled verdict instead of a hollow ok=true.
+    if not req["matched"]:
+        return {
+            "ok": False,
+            "not_modeled": True,
+            "verdict": "not modeled — do not rely",
+            "missing": [],
+            "extra": [],
+            "unsatisfied_options": [],
+            "satisfied": [],
+            "citations": [],
+            "situation": req["situation"],
+        }
+
     on = set(observed)
 
     mandatory = {l["id"] for l in req["lights"]}
@@ -32,6 +49,7 @@ def check_compliance(reqs: Requirements, profile: Profile, observed) -> dict:
     ok = not missing and not extra and not options_unmet
     return {
         "ok": ok,
+        "not_modeled": False,
         "missing": missing,
         "extra": extra,
         "unsatisfied_options": [] if any_option_met else unsatisfied_options,

@@ -36,10 +36,29 @@ class Rule:
         return f"{_FENCE}\n{fm}\n{_FENCE}\n{self.prose}"
 
 
-_SPECIAL = {
-    "anchored", "aground", "not_under_command", "restricted_in_ability_to_maneuver",
-    "constrained_by_draught", "fishing", "towing",
-}
+# Canonical vessel_class vocabulary — the single source of truth. Kept in sync with the
+# server input-schema enum (server.py) and the Profile Schema in SPEC.md. Every entry except
+# the two propulsion-derived classes (power_driven / sailing) is a "special" status whose
+# lighting overrides propulsion and maps to a requirements.yaml `situation` of the same name.
+VESSEL_CLASSES = (
+    "power_driven",
+    "sailing",
+    "anchored",
+    "towing",
+    "being_towed",
+    "not_under_command",
+    "restricted_manoeuvrability",
+    "constrained_by_draught",
+    "fishing",
+    "pilot_vessel",
+    "vessel_aground",
+    "seaplane",
+)
+
+# Special states that override propulsion when deriving the lights situation. Derived from
+# VESSEL_CLASSES so the two vocabularies can never drift (the SPEC↔code mismatch that let a
+# RAM/aground/pilot vessel fall through to ordinary steaming lights — see issue #2).
+_SPECIAL = frozenset(VESSEL_CLASSES) - {"power_driven", "sailing"}
 
 
 @dataclass
@@ -53,8 +72,14 @@ class Profile:
 
 def derive_situation(p: Profile) -> str:
     """Resolve the effective lights situation. Special states override propulsion;
-    otherwise propulsion is authoritative (motorsailing is power-driven, not sailing)."""
+    otherwise propulsion is authoritative (motorsailing is power-driven, not sailing).
+
+    An unrecognized vessel_class is returned unchanged — never folded into power_driven —
+    so it matches no requirements row and is surfaced as "not modeled" by check_compliance
+    rather than silently passing with ordinary steaming lights."""
     if p.vessel_class in _SPECIAL:
+        return p.vessel_class
+    if p.vessel_class not in VESSEL_CLASSES:
         return p.vessel_class
     if p.propulsion == "sail_and_machinery":
         return "motorsailing"

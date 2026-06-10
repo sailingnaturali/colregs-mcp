@@ -47,7 +47,7 @@ Several tools accept a `profile` object describing the vessel situation:
 
 ```json
 {
-  "vessel_class": "power_driven | sailing | towing | being_towed | not_under_command | restricted_manoeuvrability | constrained_by_draught | fishing | pilot_vessel | vessel_aground | seaplane",
+  "vessel_class": "power_driven | sailing | anchored | towing | being_towed | not_under_command | restricted_manoeuvrability | constrained_by_draught | fishing | pilot_vessel | vessel_aground | seaplane",
   "length_m": 12.5,
   "propulsion": "sail | machinery | sail_and_machinery",
   "regime": "international | inland | canadian",
@@ -195,6 +195,7 @@ Return the lights, shapes, and sound/fog signals required for a vessel in a give
 ```json
 {
   "situation": "sailing vessel, 12.5 m, night, international",
+  "matched": true,
   "lights": [
     { "id": "sidelights", "desc": "Port and starboard sidelights", "rule": "25(a)(i)" },
     { "id": "sternlight", "desc": "Sternlight", "rule": "25(a)(i)" }
@@ -210,6 +211,8 @@ Return the lights, shapes, and sound/fog signals required for a vessel in a give
 ```
 
 `light_options` is a list of option groups; each group is a list of light IDs. At least one complete group must be satisfied for full compliance. `forbids` lists IDs that must not be shown in this situation. A `situation` field gives a human-readable summary.
+
+`matched` is `true` when at least one `requirements.yaml` row covers the profile. When `matched` is `false` the situation is **not modeled** — the lights/shapes lists are empty because no rule was found, *not* because nothing is required. Callers (and `check_compliance`) must treat an unmatched profile as unknown, never as "no requirements."
 
 ---
 
@@ -229,6 +232,7 @@ Check whether the set of lights/shapes currently observed satisfies the requirem
 ```json
 {
   "ok": false,
+  "not_modeled": false,
   "missing": ["sternlight"],
   "extra": [],
   "unsatisfied_options": [["tricolor"], ["masthead_steaming", "sidelights", "sternlight"]],
@@ -239,7 +243,8 @@ Check whether the set of lights/shapes currently observed satisfies the requirem
 
 | Field | Description |
 |---|---|
-| `ok` | `true` only when `missing` is empty, `extra` is empty, and every option group has ≥1 group fully satisfied |
+| `ok` | `true` only when the situation is modeled, `missing` is empty, `extra` is empty, and every option group has ≥1 group fully satisfied |
+| `not_modeled` | `true` when no `requirements.yaml` row covers the profile (see below) |
 | `missing` | Required lights absent from `observed` |
 | `extra` | Forbidden lights present in `observed` |
 | `unsatisfied_options` | Option groups with no fully-satisfied group |
@@ -247,6 +252,8 @@ Check whether the set of lights/shapes currently observed satisfies the requirem
 | `citations` | Rule references |
 
 `extra` contains forbidden lights that are present. `ok` is `false` when any forbidden light is on, any mandatory light is missing, or no option group is fully satisfied (when option groups exist).
+
+**Not-modeled situations.** When no `requirements.yaml` row covers the profile (an unmodeled `vessel_class`, a `condition` with no entries such as `restricted_visibility`, or a `length_m` outside every defined band), `check_compliance` returns `ok: false` with `not_modeled: true` and `verdict: "not modeled — do not rely"`, rather than reporting `ok: true` on an empty requirement set. Absence of a rule is never treated as compliance.
 
 ---
 

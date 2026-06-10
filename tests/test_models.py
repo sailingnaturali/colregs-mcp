@@ -39,3 +39,25 @@ def test_derive_situation_special_state_overrides_propulsion():
 def test_derive_situation_plain_sailing_and_power():
     assert derive_situation(Profile("sailing", 10, "sail", "international", "night")) == "sailing"
     assert derive_situation(Profile("power_driven", 10, "machinery", "international", "night")) == "power_driven"
+
+
+from colregs_mcp.models import VESSEL_CLASSES, _SPECIAL
+
+def test_canonical_special_classes_override_propulsion_not_fall_through():
+    # The SPEC-documented special classes must map to their own situation, never to
+    # power_driven via propulsion (the CRIT-2 vocab mismatch).
+    for klass in ["restricted_manoeuvrability", "vessel_aground", "being_towed",
+                  "pilot_vessel", "seaplane", "towing", "not_under_command",
+                  "constrained_by_draught", "fishing", "anchored"]:
+        p = Profile(klass, 30.0, "machinery", "international", "night")
+        assert derive_situation(p) == klass, f"{klass} fell through to {derive_situation(p)}"
+
+def test_special_set_matches_canonical_vocabulary():
+    assert _SPECIAL == frozenset(VESSEL_CLASSES) - {"power_driven", "sailing"}
+    assert "restricted_manoeuvrability" in _SPECIAL
+    assert "vessel_aground" in _SPECIAL
+
+def test_unknown_vessel_class_never_becomes_power_driven():
+    # An out-of-vocab class with machinery propulsion must NOT be folded into power_driven.
+    p = Profile("restricted_in_ability_to_maneuver", 30.0, "machinery", "international", "night")
+    assert derive_situation(p) == "restricted_in_ability_to_maneuver"
