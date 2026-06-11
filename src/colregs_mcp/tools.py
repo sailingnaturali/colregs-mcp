@@ -41,15 +41,36 @@ def resolve_regime(vault: Vault, lat: float, lon: float) -> dict:
 
 
 def _profile(d: dict) -> Profile:
+    from colregs_mcp.models import CONDITIONS, PROPULSIONS, REGIMES, VESSEL_CLASSES
+
+    for key in ("vessel_class", "length_m", "propulsion", "regime", "condition"):
+        if key not in d:
+            raise ValueError(f"profile is missing required field {key!r}")
+    try:
+        length_m = float(d["length_m"])
+    except (TypeError, ValueError):
+        raise ValueError(f"profile length_m must be a number, got {d['length_m']!r}") from None
+    for key, vocab in (("vessel_class", VESSEL_CLASSES), ("propulsion", PROPULSIONS),
+                       ("regime", REGIMES), ("condition", CONDITIONS)):
+        if d[key] not in vocab:
+            raise ValueError(f"unknown {key} {d[key]!r}; expected one of {sorted(vocab)}")
     return Profile(
-        vessel_class=d["vessel_class"], length_m=float(d["length_m"]),
+        vessel_class=d["vessel_class"], length_m=length_m,
         propulsion=d["propulsion"], regime=d["regime"], condition=d["condition"],
     )
 
 
 def required_signals_tool(vault: Vault, profile: dict) -> dict:
-    return required_signals(vault.requirements, _profile(profile))
+    try:
+        p = _profile(profile)
+    except ValueError as e:
+        return {"error": str(e), "found": False}
+    return required_signals(vault.requirements, p)
 
 
 def check_compliance_tool(vault: Vault, profile: dict, observed) -> dict:
-    return check_compliance(vault.requirements, _profile(profile), observed or [])
+    try:
+        p = _profile(profile)
+    except ValueError as e:
+        return {"error": str(e), "found": False}
+    return check_compliance(vault.requirements, p, observed or [])

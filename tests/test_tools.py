@@ -42,3 +42,21 @@ def test_check_compliance_tool_flags_missing_anchor_light():
         "vessel_class": "anchored", "length_m": 14.9, "propulsion": "machinery",
         "regime": "canadian", "condition": "night"}, observed=["sidelights"])
     assert out["ok"] is False and "anchor_light" in out["missing"]
+
+def test_profile_unknown_vessel_class_returns_structured_error():
+    out = check_compliance_tool(_vault(), profile={
+        "vessel_class": "submarine", "length_m": 10.0, "propulsion": "machinery",
+        "regime": "international", "condition": "night"}, observed=[])
+    assert out["found"] is False and "vessel_class" in out["error"]
+
+def test_profile_missing_length_returns_structured_error():
+    out = required_signals_tool(_vault(), profile={
+        "vessel_class": "sailing", "propulsion": "sail",
+        "regime": "international", "condition": "night"})
+    assert out["found"] is False and "length_m" in out["error"]
+
+def test_profile_non_numeric_length_returns_structured_error():
+    out = required_signals_tool(_vault(), profile={
+        "vessel_class": "sailing", "length_m": "twelve", "propulsion": "sail",
+        "regime": "international", "condition": "night"})
+    assert out["found"] is False and "length_m" in out["error"]

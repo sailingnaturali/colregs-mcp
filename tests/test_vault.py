@@ -14,3 +14,51 @@ def test_vault_get_rule_by_number_and_regime():
     r = v.get_rule("30", "international")
     assert r is not None and "ball" in r.prose
     assert v.get_rule("30", "inland") is None
+
+def _write_vault(tmp_path, requirements_yaml: str) -> Path:
+    (tmp_path / "requirements.yaml").write_text(requirements_yaml, encoding="utf-8")
+    return tmp_path
+
+def test_requirements_rejects_unknown_match_key(tmp_path):
+    import pytest
+    root = _write_vault(tmp_path, (
+        "version: 1\n"
+        "entries:\n"
+        "  - id: typo-row\n"
+        "    match: { situation: anchored, lenght_lt: 50 }\n"   # typo'd key
+        "    lights: [{ id: anchor_light, rule: 'Rule 30(a)' }]\n"
+    ))
+    with pytest.raises(ValueError, match="lenght_lt"):
+        Vault.load(root)
+
+def test_requirements_rejects_empty_match(tmp_path):
+    import pytest
+    root = _write_vault(tmp_path, (
+        "version: 1\n"
+        "entries:\n"
+        "  - id: catch-all\n"
+        "    match: {}\n"
+        "    lights: [{ id: anchor_light, rule: 'Rule 30(a)' }]\n"
+    ))
+    with pytest.raises(ValueError, match="catch-all"):
+        Vault.load(root)
+
+def test_requirements_rejects_unknown_situation(tmp_path):
+    import pytest
+    root = _write_vault(tmp_path, (
+        "version: 1\n"
+        "entries:\n"
+        "  - id: bad-situation\n"
+        "    match: { situation: submarine, condition: night }\n"
+        "    lights: [{ id: anchor_light, rule: 'Rule 30(a)' }]\n"
+    ))
+    with pytest.raises(ValueError, match="submarine"):
+        Vault.load(root)
+
+def test_coverage_gaps_reported_for_fixture():
+    # The fixture (like the live vault) has no restricted-visibility rows and a
+    # power_driven night band that stops at 50 m — both must surface as gaps.
+    v = Vault.load(FIXTURE)
+    gaps = v.requirements.coverage_gaps()
+    assert any("restricted_visibility" in g for g in gaps)
+    assert any("power_driven" in g and "50" in g for g in gaps)

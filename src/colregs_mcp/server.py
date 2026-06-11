@@ -13,6 +13,7 @@ import mcp.types as types
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
+from colregs_mcp import models as models_vocab
 from colregs_mcp import tools
 from colregs_mcp.vault import Vault
 
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 _PROFILE_SCHEMA = {
     "type": "object",
     "properties": {
-        "vessel_class": {"type": "string"},
+        "vessel_class": {"type": "string", "enum": sorted(models_vocab.VESSEL_CLASSES)},
         "length_m": {"type": "number"},
         "propulsion": {"type": "string", "enum": ["sail", "machinery", "sail_and_machinery"]},
         "regime": {"type": "string", "enum": ["international", "inland", "canadian"]},

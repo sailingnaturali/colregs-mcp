@@ -47,7 +47,7 @@ Several tools accept a `profile` object describing the vessel situation:
 
 ```json
 {
-  "vessel_class": "power_driven | sailing | towing | being_towed | not_under_command | restricted_manoeuvrability | constrained_by_draught | fishing | pilot_vessel | vessel_aground | seaplane",
+  "vessel_class": "power_driven | sailing | anchored | towing | being_towed | not_under_command | restricted_manoeuvrability | constrained_by_draught | fishing | pilot_vessel | vessel_aground | seaplane",
   "length_m": 12.5,
   "propulsion": "sail | machinery | sail_and_machinery",
   "regime": "international | inland | canadian",
@@ -194,7 +194,8 @@ Return the lights, shapes, and sound/fog signals required for a vessel in a give
 
 ```json
 {
-  "situation": "sailing vessel, 12.5 m, night, international",
+  "situation": "sailing",
+  "matched": true,
   "lights": [
     { "id": "sidelights", "desc": "Port and starboard sidelights", "rule": "25(a)(i)" },
     { "id": "sternlight", "desc": "Sternlight", "rule": "25(a)(i)" }
@@ -209,7 +210,7 @@ Return the lights, shapes, and sound/fog signals required for a vessel in a give
 }
 ```
 
-`light_options` is a list of option groups; each group is a list of light IDs. At least one complete group must be satisfied for full compliance. `forbids` lists IDs that must not be shown in this situation. A `situation` field gives a human-readable summary.
+`light_options` is a list of option groups; each group is a list of light IDs. At least one complete group must be satisfied for full compliance. `forbids` lists IDs that must not be shown in this situation. `situation` is the derived effective situation. **`matched` is `false` when no `requirements.yaml` row covers the profile** — callers must treat that as "not modeled", never as "nothing required".
 
 ---
 
@@ -229,6 +230,7 @@ Check whether the set of lights/shapes currently observed satisfies the requirem
 ```json
 {
   "ok": false,
+  "not_modeled": false,
   "missing": ["sternlight"],
   "extra": [],
   "unsatisfied_options": [["tricolor"], ["masthead_steaming", "sidelights", "sternlight"]],
@@ -239,14 +241,15 @@ Check whether the set of lights/shapes currently observed satisfies the requirem
 
 | Field | Description |
 |---|---|
-| `ok` | `true` only when `missing` is empty, `extra` is empty, and every option group has ≥1 group fully satisfied |
+| `ok` | `true` only when the situation is modeled, `missing` is empty, `extra` is empty, and every option group has ≥1 group fully satisfied |
+| `not_modeled` | `true` when no `requirements.yaml` row covers the profile; `ok` is forced `false` and a `note` field says "do not rely on this verdict" |
 | `missing` | Required lights absent from `observed` |
 | `extra` | Forbidden lights present in `observed` |
 | `unsatisfied_options` | Option groups with no fully-satisfied group |
 | `satisfied` | Required lights present in `observed` |
 | `citations` | Rule references |
 
-`extra` contains forbidden lights that are present. `ok` is `false` when any forbidden light is on, any mandatory light is missing, or no option group is fully satisfied (when option groups exist).
+`extra` contains forbidden lights that are present. `ok` is `false` when any forbidden light is on, any mandatory light is missing, no option group is fully satisfied (when option groups exist), or the situation is not modeled at all. **Absence of a matching requirements row is never compliance** — an unmodeled situation returns `ok: false, not_modeled: true` so the agent warns instead of staying silent.
 
 ---
 

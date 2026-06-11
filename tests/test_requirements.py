@@ -1,4 +1,18 @@
-from colregs_mcp.requirements import entry_matches
+from pathlib import Path
+
+from colregs_mcp.models import Profile
+from colregs_mcp.requirements import entry_matches, required_signals
+from colregs_mcp.vault import Vault
+
+FIXTURE = Path(__file__).parent / "fixtures" / "vault"
+
+def test_required_signals_reports_matched_flag():
+    reqs = Vault.load(FIXTURE).requirements
+    hit = required_signals(reqs, Profile("anchored", 14.9, "machinery", "canadian", "night"))
+    assert hit["matched"] is True
+    # 60 m power vessel at night: only a length_lt:50 row exists -> not modeled
+    miss = required_signals(reqs, Profile("power_driven", 60.0, "machinery", "canadian", "night"))
+    assert miss["matched"] is False
 
 def test_entry_matches_situation_condition_and_length():
     match = {"situation": "anchored", "condition": "night", "length_lt": 50}

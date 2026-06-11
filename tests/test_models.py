@@ -39,3 +39,22 @@ def test_derive_situation_special_state_overrides_propulsion():
 def test_derive_situation_plain_sailing_and_power():
     assert derive_situation(Profile("sailing", 10, "sail", "international", "night")) == "sailing"
     assert derive_situation(Profile("power_driven", 10, "machinery", "international", "night")) == "power_driven"
+
+def test_every_spec_special_class_overrides_propulsion():
+    # The SPEC vocabulary, not the old internal names: a RAM vessel under power
+    # must derive its special situation, never fall through to power_driven.
+    for vc in ("anchored", "vessel_aground", "not_under_command", "restricted_manoeuvrability",
+               "constrained_by_draught", "fishing", "towing", "being_towed", "pilot_vessel",
+               "seaplane"):
+        p = Profile(vc, 60.0, "machinery", "international", "night")
+        assert derive_situation(p) == vc, vc
+
+def test_derive_situation_rejects_unknown_vessel_class():
+    import pytest
+    with pytest.raises(ValueError, match="vessel_class"):
+        derive_situation(Profile("submarine", 10, "machinery", "international", "night"))
+
+def test_derive_situation_rejects_unknown_propulsion():
+    import pytest
+    with pytest.raises(ValueError, match="propulsion"):
+        derive_situation(Profile("power_driven", 10, "nuclear", "international", "night"))

@@ -35,10 +35,12 @@ def required_signals(reqs: Requirements, profile: Profile) -> dict:
     shapes: list[dict] = []
     forbids: list[str] = []
     citations: list[str] = []
+    matched = False
 
     for entry in reqs.entries:
         if not entry_matches(entry.get("match", {}), eff):
             continue
+        matched = True
         lights.extend(entry.get("lights", []))
         light_options.extend(entry.get("light_options", []))
         shapes.extend(entry.get("shapes", []))
@@ -51,6 +53,9 @@ def required_signals(reqs: Requirements, profile: Profile) -> dict:
     forbids = list(dict.fromkeys(forbids))
     return {
         "situation": situation,
+        # False = no requirements row covers this profile. Callers must treat
+        # that as "not modeled", never as "nothing required" (R1).
+        "matched": matched,
         "lights": lights,
         "light_options": light_options,
         "shapes": shapes,

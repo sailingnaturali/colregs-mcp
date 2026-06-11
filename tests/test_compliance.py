@@ -38,3 +38,24 @@ def test_sailing_no_lights_reports_unsatisfied_option():
                            observed=[])
     assert out["ok"] is False
     assert out["unsatisfied_options"]            # at least one group unmet
+
+def test_unmodeled_situation_is_never_compliant():
+    # A dark 60 m power vessel matches no row (only length_lt:50 exists) — absence
+    # of a rule must read "not modeled", not "compliant" (fleet conventions R1).
+    out = check_compliance(_reqs(), Profile("power_driven", 60.0, "machinery", "international", "night"),
+                           observed=[])
+    assert out["ok"] is False
+    assert out["not_modeled"] is True
+    assert "do not rely" in out["note"]
+
+def test_restricted_visibility_is_not_modeled_not_compliant():
+    out = check_compliance(_reqs(),
+                           Profile("power_driven", 14.9, "machinery", "international", "restricted_visibility"),
+                           observed=["masthead_steaming", "sidelights", "sternlight"])
+    assert out["ok"] is False
+    assert out["not_modeled"] is True
+
+def test_modeled_situation_carries_not_modeled_false():
+    out = check_compliance(_reqs(), Profile("anchored", 14.9, "machinery", "canadian", "night"),
+                           observed=["anchor_light"])
+    assert out["ok"] is True and out["not_modeled"] is False
