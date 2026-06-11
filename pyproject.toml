@@ -1,6 +1,6 @@
 [project]
 name = "colregs-mcp"
-version = "0.1.0"
+version = "0.2.0"
 description = "MCP server for the navigation rules: queryable rule text plus deterministic required-lights/shapes and compliance checking."
 readme = "README.md"
 license = "MIT"
