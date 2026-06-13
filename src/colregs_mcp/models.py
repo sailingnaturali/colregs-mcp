@@ -49,6 +49,26 @@ PROPULSIONS = frozenset({"sail", "machinery", "sail_and_machinery"})
 REGIMES = frozenset({"international", "inland", "canadian"})
 CONDITIONS = frozenset({"day", "night", "restricted_visibility"})
 
+# Reverse-identification vocabulary. Two disjoint token namespaces: light colours
+# (all-round assumed; sidelights/sternlight/masthead are confirmatory, never part
+# of the stacked identity) and day shapes. `kind` is inferred from the namespace.
+LIGHT_COLORS = frozenset({"red", "white", "green", "yellow"})
+DAY_SHAPES = frozenset({"ball", "diamond", "cylinder", "cone_up", "cone_down"})
+SIGNAL_TOKENS = LIGHT_COLORS | DAY_SHAPES
+
+# Shapes are a daytime signal; lights are shown at night and in restricted visibility.
+SIGNAL_CONDITIONS = {"shapes": {"day"}, "lights": {"night", "restricted_visibility"}}
+
+
+def token_kind(token: str) -> str:
+    """'lights' for a colour token, 'shapes' for a day-shape token. Raises on unknown —
+    an unrecognized token must never be silently dropped from an identification."""
+    if token in LIGHT_COLORS:
+        return "lights"
+    if token in DAY_SHAPES:
+        return "shapes"
+    raise ValueError(f"unknown signal token {token!r}; expected one of {sorted(SIGNAL_TOKENS)}")
+
 # Situations a requirements.yaml row may target: every special state, the two
 # ordinary classes, plus the derived motorsailing state.
 SITUATIONS = VESSEL_CLASSES | {"motorsailing"}

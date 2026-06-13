@@ -58,3 +58,19 @@ def test_derive_situation_rejects_unknown_propulsion():
     import pytest
     with pytest.raises(ValueError, match="propulsion"):
         derive_situation(Profile("power_driven", 10, "nuclear", "international", "night"))
+
+def test_token_kind_classifies_colours_and_shapes():
+    from colregs_mcp.models import token_kind
+    assert token_kind("red") == "lights"
+    assert token_kind("ball") == "shapes"
+
+def test_token_kind_rejects_unknown_token():
+    import pytest
+    from colregs_mcp.models import token_kind
+    with pytest.raises(ValueError, match="unknown signal token"):
+        token_kind("purple")
+
+def test_signal_conditions_pair_kinds_to_conditions():
+    from colregs_mcp.models import SIGNAL_CONDITIONS
+    assert SIGNAL_CONDITIONS["shapes"] == {"day"}
+    assert SIGNAL_CONDITIONS["lights"] == {"night", "restricted_visibility"}
