@@ -82,8 +82,8 @@ def _signal_token(sig_id: str) -> str | None:
     is not diagnostic. Non-diagnostic ids include the sector/combined lights
     (sidelights, sternlight, masthead_steaming, tricolor) and any id outside the
     all-round colour and day-shape vocabularies."""
-    for colour in ("red", "white", "green", "yellow"):
-        if sig_id.startswith(f"all_round_{colour}"):
+    for colour in sorted(LIGHT_COLORS):
+        if sig_id == f"all_round_{colour}" or sig_id.startswith(f"all_round_{colour}_"):
             return colour
     if sig_id == "anchor_light":
         return "white"
@@ -130,7 +130,13 @@ def sightings_drift(sightings: Sightings, reqs: Requirements) -> list[str]:
     Returns a list of human-readable inconsistencies (empty == consistent). Every
     sighting candidate must (a) name a situation the rules table models for that
     condition and (b) carry an arrangement whose diagnostic tokens match some
-    modeled length band. Run as a test so the two files can't silently diverge."""
+    modeled length band. Run as a test so the two files can't silently diverge.
+
+    Known limitation: bands are aggregated across all length and regime variants of a
+    situation, so a regime-agnostic sighting is validated against the union of every
+    regime's requirements rather than each in isolation. This is acceptable while the
+    vault has no regime- or length-specific divergence in diagnostic stacked signals;
+    revisit if such entries are added."""
     problems: list[str] = []
     for p in sightings.patterns:
         arr = sorted(p["arrangement"])
@@ -156,7 +162,7 @@ def list_signal_patterns(sightings: Sightings) -> dict:
                  "all-round lights assumed"),
         "patterns": [
             {"id": p["id"], "arrangement": p["arrangement"], "condition": p["condition"],
-             "mnemonic": p.get("mnemonic"),
+             "mnemonic": p.get("mnemonic"), "confirm": p.get("confirm", []),
              "situations": [c["situation"] for c in p["candidates"]]}
             for p in sightings.patterns
         ],

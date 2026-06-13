@@ -55,3 +55,4 @@ def test_list_signal_patterns_returns_vocabulary_and_catalog():
     entry = next(p for p in out["patterns"] if p["id"] == "red-over-red-night")
     assert entry["situations"] == ["not_under_command"]
     assert entry["arrangement"] == ["red", "red"]
+    assert entry["confirm"]  # confirm cues are surfaced for browsing

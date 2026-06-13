@@ -67,3 +67,9 @@ def test_signal_token_maps_diagnostic_and_drops_sector_lights():
     assert _signal_token("tricolor") is None
     assert _signal_token("masthead_steaming") is None
     assert _signal_token("totally_unknown") is None
+
+def test_signal_token_requires_colour_delimiter():
+    from colregs_mcp.sightings import _signal_token
+    assert _signal_token("all_round_red") == "red"
+    assert _signal_token("all_round_red_upper") == "red"
+    assert _signal_token("all_round_reddish") is None
