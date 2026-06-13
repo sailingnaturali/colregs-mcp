@@ -19,6 +19,10 @@ def _write_vault(tmp_path, requirements_yaml: str) -> Path:
     (tmp_path / "requirements.yaml").write_text(requirements_yaml, encoding="utf-8")
     return tmp_path
 
+def _write_sightings_vault(tmp_path, sightings_yaml: str) -> Path:
+    (tmp_path / "sightings.yaml").write_text(sightings_yaml, encoding="utf-8")
+    return tmp_path
+
 def test_requirements_rejects_unknown_match_key(tmp_path):
     import pytest
     root = _write_vault(tmp_path, (
@@ -70,39 +74,43 @@ def test_vault_loads_sightings():
 
 def test_sightings_rejects_unknown_token(tmp_path):
     import pytest
-    (tmp_path / "sightings.yaml").write_text(
-        "version: 1\n"
-        "patterns:\n"
-        "  - id: bad-token\n"
-        "    arrangement: [purple]\n"
-        "    condition: night\n"
-        "    candidates: [{ situation: anchored, rule: 'Rule 30' }]\n",
-        encoding="utf-8")
     with pytest.raises(ValueError, match="unknown token"):
-        Vault.load(tmp_path)
+        Vault.load(_write_sightings_vault(tmp_path,
+            "version: 1\n"
+            "patterns:\n"
+            "  - id: bad-token\n"
+            "    arrangement: [purple]\n"
+            "    condition: night\n"
+            "    candidates: [{ situation: anchored, rule: 'Rule 30' }]\n"))
 
 def test_sightings_rejects_kind_condition_mismatch(tmp_path):
     import pytest
-    (tmp_path / "sightings.yaml").write_text(
-        "version: 1\n"
-        "patterns:\n"
-        "  - id: shape-by-night\n"
-        "    arrangement: [ball]\n"
-        "    condition: night\n"
-        "    candidates: [{ situation: anchored, rule: 'Rule 30' }]\n",
-        encoding="utf-8")
     with pytest.raises(ValueError, match="not a shapes condition"):
-        Vault.load(tmp_path)
+        Vault.load(_write_sightings_vault(tmp_path,
+            "version: 1\n"
+            "patterns:\n"
+            "  - id: shape-by-night\n"
+            "    arrangement: [ball]\n"
+            "    condition: night\n"
+            "    candidates: [{ situation: anchored, rule: 'Rule 30' }]\n"))
 
 def test_sightings_rejects_unknown_situation(tmp_path):
     import pytest
-    (tmp_path / "sightings.yaml").write_text(
-        "version: 1\n"
-        "patterns:\n"
-        "  - id: bad-situation\n"
-        "    arrangement: [red, red]\n"
-        "    condition: night\n"
-        "    candidates: [{ situation: submarine, rule: 'Rule 27' }]\n",
-        encoding="utf-8")
     with pytest.raises(ValueError, match="unknown situation"):
-        Vault.load(tmp_path)
+        Vault.load(_write_sightings_vault(tmp_path,
+            "version: 1\n"
+            "patterns:\n"
+            "  - id: bad-situation\n"
+            "    arrangement: [red, red]\n"
+            "    condition: night\n"
+            "    candidates: [{ situation: submarine, rule: 'Rule 27' }]\n"))
+
+def test_sightings_rejects_missing_condition(tmp_path):
+    import pytest
+    with pytest.raises(ValueError, match="missing required field 'condition'"):
+        Vault.load(_write_sightings_vault(tmp_path,
+            "version: 1\n"
+            "patterns:\n"
+            "  - id: no-condition\n"
+            "    arrangement: [red, red]\n"
+            "    candidates: [{ situation: not_under_command, rule: 'Rule 27' }]\n"))

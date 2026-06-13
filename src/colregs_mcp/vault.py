@@ -69,6 +69,8 @@ def _validate_sightings(patterns: list) -> None:
             raise ValueError(f"sightings.yaml: {ident} mixes lights and shapes in arrangement")
         kind = kinds.pop()
         cond = p.get("condition")
+        if cond is None:
+            raise ValueError(f"sightings.yaml: {ident} is missing required field 'condition'")
         if cond not in CONDITIONS:
             raise ValueError(f"sightings.yaml: {ident} has unknown condition {cond!r}")
         if cond not in SIGNAL_CONDITIONS[kind]:
