@@ -253,6 +253,38 @@ Check whether the set of lights/shapes currently observed satisfies the requirem
 
 ---
 
+## Reverse identification
+
+### Token vocabulary
+
+- **Light colours** (night / restricted visibility): `red`, `white`, `green`, `yellow`.
+  All-round assumed; sidelights, sternlight and masthead lights are confirmatory,
+  never part of the stacked identity.
+- **Day shapes**: `ball`, `diamond`, `cylinder`, `cone_up`, `cone_down`.
+
+`arrangement` is an ordered list of tokens, top to bottom. Light and shape tokens
+must not be mixed in one arrangement. The two namespaces are disjoint, so `kind`
+(lights vs shapes) is inferred from the tokens and validated against `condition`
+(shapes ⇒ `day`; lights ⇒ `night` / `restricted_visibility`).
+
+### `identify_signals`
+
+Input: `{ arrangement: string[], condition: "day"|"night"|"restricted_visibility", regime?: ... }`.
+Output: `{ arrangement, condition, kind, matches: [...] }` where each match is
+`{ match_type, pattern_id, mnemonic, candidates: [{situation, rule, note}], confirm: string[] }`.
+`match_type` ranks results: `exact` → `superset` (a light may have been missed) →
+`permutation` (top/bottom may be flipped). On an exact hit only exact matches are
+returned; otherwise superset and permutation near-misses are returned, each flagged.
+Errors (empty/mixed/unknown tokens, kind/condition mismatch) return `{ error, matches: [] }`.
+
+### `list_signal_patterns`
+
+Input: `{}`. Output: `{ light_colors, day_shapes, note, patterns: [{id, arrangement,
+condition, mnemonic, situations}] }` — the vocabulary and catalog the LLM browses to
+learn the exact tokens to pass to `identify_signals`.
+
+---
+
 ## Error Handling
 
 All tools return structured JSON. On vault load failure or missing `requirements.yaml`, the server starts but affected tools return `{"error": "…", "found": false}` rather than raising. This prevents a stale vault from crashing the agent runtime.

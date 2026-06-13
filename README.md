@@ -27,9 +27,15 @@ MCP server for the navigation rules: queryable rule text plus deterministic requ
     inland/rule-NN.md
     canadian/rule-NN.md
   requirements.yaml        # curated light/shape requirements
+  sightings.yaml           # curated reverse field-guide (observed signals -> vessel states)
   regime-polygons.geojson  # US Inland + Canadian polygon boundaries
   manifest.yaml            # version and source attribution
 ```
+
+`sightings.yaml` is the curated reverse field-guide: each row maps an ordered,
+top-to-bottom arrangement of all-round light colours (night) or day shapes to
+candidate vessel states. A drift test cross-checks every row against
+`requirements.yaml` so the forward and reverse data cannot silently disagree.
 
 The companion vault lives at `../colregs-vault` (public repo). Rule text is sourced from the USCG Navigation Rules handbook (public domain) and the Canadian Collision Regulations, reproduced under the Reproduction of Federal Law Order.
 
@@ -42,6 +48,8 @@ The companion vault lives at `../colregs-vault` (public repo). Rule text is sour
 | `resolve_regime` | Point-in-polygon lookup — returns `international`, `inland`, or `canadian` for a lat/lon |
 | `required_signals` | Return required lights, shapes, and option groups for a vessel profile (vessel class, length, propulsion, regime, day/night/restricted visibility) |
 | `check_compliance` | Compare an observed set of light/shape IDs against requirements; returns `ok`, `missing`, `extra`, and unsatisfied option groups |
+| `identify_signals` | Reverse lookup — observed top-to-bottom light/shape arrangement → ranked candidate vessel states with citations and confirm cues (`match_type`: exact / superset / permutation) |
+| `list_signal_patterns` | The canonical token vocabulary (light colours, day shapes) and the catalog of known sighting patterns |
 
 See `SPEC.md` for full input/output contracts, the profile schema, and the normalized light-ID vocabulary.
 
