@@ -71,3 +71,20 @@ def identify_signals(sightings: Sightings, arrangement, condition: str,
     matches = exact or (superset + permutation)
     return {"arrangement": arrangement, "condition": condition, "kind": kind,
             "matches": matches}
+
+
+def list_signal_patterns(sightings: Sightings) -> dict:
+    """The canonical token vocabulary plus the catalog of known patterns, so the LLM
+    can browse the exact tokens to translate a spoken observation into."""
+    return {
+        "light_colors": sorted(LIGHT_COLORS),
+        "day_shapes": sorted(DAY_SHAPES),
+        "note": ("arrangement is an ordered list of tokens, top to bottom; "
+                 "all-round lights assumed"),
+        "patterns": [
+            {"id": p["id"], "arrangement": p["arrangement"], "condition": p["condition"],
+             "mnemonic": p.get("mnemonic"),
+             "situations": [c["situation"] for c in p["candidates"]]}
+            for p in sightings.patterns
+        ],
+    }

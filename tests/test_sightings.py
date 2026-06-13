@@ -44,3 +44,14 @@ def test_mixed_tokens_is_an_error():
 def test_unknown_token_is_an_error():
     out = identify_signals(_s(), ["purple"], "night")
     assert "error" in out and out["matches"] == []
+
+def test_list_signal_patterns_returns_vocabulary_and_catalog():
+    from colregs_mcp.sightings import list_signal_patterns
+    out = list_signal_patterns(_s())
+    assert set(out["light_colors"]) == {"red", "white", "green", "yellow"}
+    assert "ball" in out["day_shapes"]
+    ids = [p["id"] for p in out["patterns"]]
+    assert "red-over-red-night" in ids
+    entry = next(p for p in out["patterns"] if p["id"] == "red-over-red-night")
+    assert entry["situations"] == ["not_under_command"]
+    assert entry["arrangement"] == ["red", "red"]
