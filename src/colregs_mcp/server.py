@@ -31,6 +31,12 @@ _PROFILE_SCHEMA = {
     "required": ["vessel_class", "length_m", "propulsion", "regime", "condition"],
 }
 
+_ARRANGEMENT_SCHEMA = {
+    "type": "array",
+    "items": {"type": "string", "enum": sorted(models_vocab.SIGNAL_TOKENS)},
+    "description": "observed signals, top to bottom; light colours OR day shapes, not both",
+}
+
 
 def dispatch(vault: Vault, name: str, args: dict) -> dict:
     """Route a tool call to its implementation. Shared by the server and tests."""
@@ -46,6 +52,11 @@ def dispatch(vault: Vault, name: str, args: dict) -> dict:
     if name == "check_compliance":
         return tools.check_compliance_tool(vault, profile=args["profile"],
                                            observed=args.get("observed", []))
+    if name == "identify_signals":
+        return tools.identify_signals_tool(vault, arrangement=args["arrangement"],
+                                           condition=args["condition"], regime=args.get("regime"))
+    if name == "list_signal_patterns":
+        return tools.list_signal_patterns_tool(vault)
     raise ValueError(f"Unknown tool: {name}")
 
 
@@ -83,6 +94,22 @@ def build_server(vault: Vault) -> Server:
                     "profile": _PROFILE_SCHEMA,
                     "observed": {"type": "array", "items": {"type": "string"}},
                 }, "required": ["profile", "observed"]}),
+            types.Tool(name="identify_signals",
+                description=("Reverse lookup: given an observed top-to-bottom arrangement of "
+                             "all-round light colours (night) or day shapes, return ranked "
+                             "candidate vessel states with citations and confirm cues. "
+                             "match_type is exact, superset (a light may have been missed), or "
+                             "permutation (top/bottom may be flipped)."),
+                inputSchema={"type": "object", "properties": {
+                    "arrangement": _ARRANGEMENT_SCHEMA,
+                    "condition": {"type": "string", "enum": ["day", "night", "restricted_visibility"]},
+                    "regime": {"type": "string", "enum": ["international", "inland", "canadian"]},
+                }, "required": ["arrangement", "condition"]}),
+            types.Tool(name="list_signal_patterns",
+                description=("The canonical token vocabulary (light colours, day shapes) and the "
+                             "catalog of known sighting patterns — browse this to learn the exact "
+                             "tokens to pass to identify_signals."),
+                inputSchema={"type": "object", "properties": {}}),
         ]
 
     @server.call_tool()

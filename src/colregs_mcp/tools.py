@@ -9,6 +9,7 @@ from colregs_mcp.models import Profile
 from colregs_mcp.regime import locate_regime
 from colregs_mcp.requirements import required_signals
 from colregs_mcp.search import rank_rules
+from colregs_mcp.sightings import identify_signals, list_signal_patterns
 from colregs_mcp.vault import Vault
 
 
@@ -74,3 +75,12 @@ def check_compliance_tool(vault: Vault, profile: dict, observed) -> dict:
     except ValueError as e:
         return {"error": str(e), "found": False}
     return check_compliance(vault.requirements, p, observed or [])
+
+
+def identify_signals_tool(vault: Vault, arrangement, condition: str,
+                          regime: str | None = None) -> dict:
+    return identify_signals(vault.sightings, arrangement or [], condition, regime)
+
+
+def list_signal_patterns_tool(vault: Vault) -> dict:
+    return list_signal_patterns(vault.sightings)
