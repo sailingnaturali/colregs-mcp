@@ -41,3 +41,9 @@ entries:
       - { id: all_round_red_1, desc: "all-round red", rule: "Rule 28" }
       - { id: all_round_red_2, desc: "all-round red", rule: "Rule 28" }
       - { id: all_round_red_3, desc: "all-round red", rule: "Rule 28" }
+  - id: ram-night
+    match: { situation: restricted_manoeuvrability, condition: night }
+    lights:
+      - { id: all_round_red_top, desc: "all-round red", rule: "Rule 27(b)(i)" }
+      - { id: all_round_white_mid, desc: "all-round white", rule: "Rule 27(b)(i)" }
+      - { id: all_round_red_bot, desc: "all-round red", rule: "Rule 27(b)(i)" }

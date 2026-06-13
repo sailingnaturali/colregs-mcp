@@ -1,0 +1,40 @@
+version: 1
+patterns:
+  - id: red-over-red-night
+    arrangement: [red, red]
+    condition: night
+    mnemonic: "red over red, the captain is dead"
+    candidates:
+      - situation: not_under_command
+        rule: "Rule 27(a)"
+        note: "Two all-round reds in a vertical line."
+    confirm:
+      - "Also see a white anchor light? May be AGROUND (Rule 30), not NUC."
+  - id: red-red-red-night
+    arrangement: [red, red, red]
+    condition: night
+    candidates:
+      - situation: constrained_by_draught
+        rule: "Rule 28"
+        note: "Three all-round reds in a vertical line."
+  - id: red-white-red-night
+    arrangement: [red, white, red]
+    condition: night
+    candidates:
+      - situation: restricted_manoeuvrability
+        rule: "Rule 27(b)"
+        note: "Red-white-red all-round, vertical."
+  - id: anchor-white-night
+    arrangement: [white]
+    condition: night
+    candidates:
+      - situation: anchored
+        rule: "Rule 30(a)"
+        note: "Single all-round white forward."
+  - id: anchor-ball-day
+    arrangement: [ball]
+    condition: day
+    candidates:
+      - situation: anchored
+        rule: "Rule 30(a)"
+        note: "One ball, forward."

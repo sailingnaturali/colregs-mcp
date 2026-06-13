@@ -62,3 +62,47 @@ def test_coverage_gaps_reported_for_fixture():
     gaps = v.requirements.coverage_gaps()
     assert any("restricted_visibility" in g for g in gaps)
     assert any("power_driven" in g and "50" in g for g in gaps)
+
+def test_vault_loads_sightings():
+    v = Vault.load(FIXTURE)
+    ids = [p["id"] for p in v.sightings.patterns]
+    assert "red-over-red-night" in ids
+
+def test_sightings_rejects_unknown_token(tmp_path):
+    import pytest
+    (tmp_path / "sightings.yaml").write_text(
+        "version: 1\n"
+        "patterns:\n"
+        "  - id: bad-token\n"
+        "    arrangement: [purple]\n"
+        "    condition: night\n"
+        "    candidates: [{ situation: anchored, rule: 'Rule 30' }]\n",
+        encoding="utf-8")
+    with pytest.raises(ValueError, match="unknown token"):
+        Vault.load(tmp_path)
+
+def test_sightings_rejects_kind_condition_mismatch(tmp_path):
+    import pytest
+    (tmp_path / "sightings.yaml").write_text(
+        "version: 1\n"
+        "patterns:\n"
+        "  - id: shape-by-night\n"
+        "    arrangement: [ball]\n"
+        "    condition: night\n"
+        "    candidates: [{ situation: anchored, rule: 'Rule 30' }]\n",
+        encoding="utf-8")
+    with pytest.raises(ValueError, match="not a shapes condition"):
+        Vault.load(tmp_path)
+
+def test_sightings_rejects_unknown_situation(tmp_path):
+    import pytest
+    (tmp_path / "sightings.yaml").write_text(
+        "version: 1\n"
+        "patterns:\n"
+        "  - id: bad-situation\n"
+        "    arrangement: [red, red]\n"
+        "    condition: night\n"
+        "    candidates: [{ situation: submarine, rule: 'Rule 27' }]\n",
+        encoding="utf-8")
+    with pytest.raises(ValueError, match="unknown situation"):
+        Vault.load(tmp_path)
