@@ -73,24 +73,44 @@ def identify_signals(sightings: Sightings, arrangement, condition: str,
             "matches": matches}
 
 
+_SHAPE_TOKENS = {"ball": "ball", "diamond": "diamond", "cylinder": "cylinder",
+                 "cone_apex_down": "cone_down", "cone_apex_up": "cone_up"}
+
+
 def _signal_token(sig_id: str) -> str | None:
     """Map a requirements.yaml signal id to its stacked-identity token, or None if it
-    is not diagnostic (sidelights, sternlight, masthead steaming, tricolor — sector
-    or combined lights, never part of the vertical all-round stack)."""
+    is not diagnostic. Non-diagnostic ids include the sector/combined lights
+    (sidelights, sternlight, masthead_steaming, tricolor) and any id outside the
+    all-round colour and day-shape vocabularies."""
     for colour in ("red", "white", "green", "yellow"):
         if sig_id.startswith(f"all_round_{colour}"):
             return colour
     if sig_id == "anchor_light":
         return "white"
-    _SHAPES = {"ball": "ball", "diamond": "diamond", "cylinder": "cylinder",
-               "cone_apex_down": "cone_down", "cone_apex_up": "cone_up"}
-    return _SHAPES.get(sig_id)
+    return _SHAPE_TOKENS.get(sig_id)
+
+
+def _entry_token_bands(entry: dict) -> list[list[str]]:
+    """The sorted diagnostic-token multiset(s) for one requirements entry. An entry
+    with `light_options` yields one band per alternative group (the vessel shows its
+    mandatory lights plus exactly one option group); otherwise a single band. Non-
+    diagnostic signals drop out, so an all-sector configuration (e.g. a plain sailing
+    vessel) yields an empty band that only an empty arrangement could match."""
+    base = list(entry.get("lights", [])) + list(entry.get("shapes", []))
+    groups = entry.get("light_options") or [[]]
+    bands: list[list[str]] = []
+    for group in groups:
+        sigs = base + list(group)
+        tokens = sorted(t for sig in sigs if (t := _signal_token(sig["id"])) is not None)
+        bands.append(tokens)
+    return bands
 
 
 def _required_token_bands(reqs: Requirements, situation: str, condition: str,
                           regime: str | None) -> list[list[str]]:
-    """For one situation+condition, the sorted diagnostic-token multiset of each
-    matching requirements length band. A sighting must equal one of these bands."""
+    """For one situation+condition, the diagnostic-token bands of each matching
+    requirements entry (one band per light-option alternative). A sighting arrangement
+    must equal one of these bands."""
     bands: list[list[str]] = []
     for e in reqs.entries:
         m = e.get("match", {})
@@ -101,9 +121,7 @@ def _required_token_bands(reqs: Requirements, situation: str, condition: str,
         r = m.get("regime")
         if r not in (None, "any") and regime is not None and r != regime:
             continue
-        tokens = [t for sig in (e.get("lights", []) + e.get("shapes", []))
-                  if (t := _signal_token(sig["id"])) is not None]
-        bands.append(sorted(tokens))
+        bands.extend(_entry_token_bands(e))
     return bands
 
 
