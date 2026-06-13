@@ -77,7 +77,7 @@ def check_compliance_tool(vault: Vault, profile: dict, observed) -> dict:
     return check_compliance(vault.requirements, p, observed or [])
 
 
-def identify_signals_tool(vault: Vault, arrangement, condition: str,
+def identify_signals_tool(vault: Vault, arrangement: list[str], condition: str,
                           regime: str | None = None) -> dict:
     return identify_signals(vault.sightings, arrangement or [], condition, regime)
 

@@ -95,20 +95,20 @@ def build_server(vault: Vault) -> Server:
                     "observed": {"type": "array", "items": {"type": "string"}},
                 }, "required": ["profile", "observed"]}),
             types.Tool(name="identify_signals",
-                description=("Reverse lookup: given an observed top-to-bottom arrangement of "
-                             "all-round light colours (night) or day shapes, return ranked "
-                             "candidate vessel states with citations and confirm cues. "
-                             "match_type is exact, superset (a light may have been missed), or "
-                             "permutation (top/bottom may be flipped)."),
+                description=("Identify a vessel from its lights or shapes. Given an observed "
+                             "top-to-bottom arrangement of all-round light colours (night) or day "
+                             "shapes, returns ranked candidate vessel states with rule citations and "
+                             "confirm cues; each match_type is exact, superset (a light may have been "
+                             "missed), or permutation (top/bottom may be flipped)."),
                 inputSchema={"type": "object", "properties": {
                     "arrangement": _ARRANGEMENT_SCHEMA,
                     "condition": {"type": "string", "enum": ["day", "night", "restricted_visibility"]},
                     "regime": {"type": "string", "enum": ["international", "inland", "canadian"]},
                 }, "required": ["arrangement", "condition"]}),
             types.Tool(name="list_signal_patterns",
-                description=("The canonical token vocabulary (light colours, day shapes) and the "
-                             "catalog of known sighting patterns — browse this to learn the exact "
-                             "tokens to pass to identify_signals."),
+                description=("Browse the canonical token vocabulary (light colours, day shapes) and "
+                             "the catalog of known sighting patterns — use it to find the exact tokens "
+                             "to pass to identify_signals."),
                 inputSchema={"type": "object", "properties": {}}),
         ]
 
