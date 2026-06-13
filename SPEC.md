@@ -275,7 +275,8 @@ Output: `{ arrangement, condition, kind, matches: [...] }` where each match is
 `match_type` ranks results: `exact` → `superset` (a light may have been missed) →
 `permutation` (top/bottom may be flipped). On an exact hit only exact matches are
 returned; otherwise superset and permutation near-misses are returned, each flagged.
-Errors (empty/mixed/unknown tokens, kind/condition mismatch) return `{ error, matches: [] }`.
+Errors (empty/mixed/unknown tokens, kind/condition mismatch) return `{ error, matches: [] }`
+(a kind/condition mismatch also echoes `kind`).
 
 ### `list_signal_patterns`
 
