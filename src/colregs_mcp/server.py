@@ -54,7 +54,8 @@ def dispatch(vault: Vault, name: str, args: dict) -> dict:
                                            observed=args.get("observed", []))
     if name == "identify_signals":
         return tools.identify_signals_tool(vault, arrangement=args["arrangement"],
-                                           condition=args["condition"], regime=args.get("regime"))
+                                           condition=args["condition"], regime=args.get("regime"),
+                                           geometry=args.get("geometry"))
     if name == "list_signal_patterns":
         return tools.list_signal_patterns_tool(vault)
     raise ValueError(f"Unknown tool: {name}")
@@ -99,11 +100,14 @@ def build_server(vault: Vault) -> Server:
                              "top-to-bottom arrangement of all-round light colours (night) or day "
                              "shapes, returns ranked candidate vessel states with rule citations and "
                              "confirm cues; each match_type is exact, superset (a light may have been "
-                             "missed), or permutation (top/bottom may be flipped)."),
+                             "missed), or permutation (top/bottom may be flipped). Pass geometry "
+                             "(triangle/fore_and_aft) when the lights are not a vertical stack."),
                 inputSchema={"type": "object", "properties": {
                     "arrangement": _ARRANGEMENT_SCHEMA,
                     "condition": {"type": "string", "enum": ["day", "night", "restricted_visibility"]},
                     "regime": {"type": "string", "enum": ["international", "inland", "canadian"]},
+                    "geometry": {"type": "string", "enum": sorted(models_vocab.GEOMETRIES),
+                                 "description": "layout, if known: vertical (default), triangle, or fore_and_aft"},
                 }, "required": ["arrangement", "condition"]}),
             types.Tool(name="list_signal_patterns",
                 description=("Browse the canonical token vocabulary (light colours, day shapes) and "

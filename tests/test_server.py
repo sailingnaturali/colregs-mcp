@@ -54,3 +54,19 @@ def test_identify_signals_schema_enum_matches_token_vocabulary():
     tool = next(t for t in tools_list if t.name == "identify_signals")
     enum = set(tool.inputSchema["properties"]["arrangement"]["items"]["enum"])
     assert enum == set(SIGNAL_TOKENS)
+
+
+def test_identify_signals_schema_exposes_geometry_enum():
+    import asyncio, mcp.types as types
+    from colregs_mcp.models import GEOMETRIES
+    from colregs_mcp.server import build_server
+    server = build_server(_vault())
+    handler = server.request_handlers[types.ListToolsRequest]
+    result = asyncio.run(handler(types.ListToolsRequest(method="tools/list")))
+    tool = next(t for t in result.root.tools if t.name == "identify_signals")
+    assert set(tool.inputSchema["properties"]["geometry"]["enum"]) == set(GEOMETRIES)
+
+def test_dispatch_identify_signals_passes_geometry():
+    out = dispatch(_vault(), "identify_signals",
+                   {"arrangement": ["red", "red"], "condition": "night", "geometry": "vertical"})
+    assert out["matches"]  # red-over-red is vertical, so it still matches

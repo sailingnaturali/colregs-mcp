@@ -83,3 +83,15 @@ def test_geometry_given_filters_to_matching_geometry():
 def test_geometry_defaults_vertical_when_pattern_omits_it():
     out = identify_signals(_geo_catalog(), ["ball", "ball", "ball"], "day", geometry="vertical")
     assert [c["situation"] for m in out["matches"] for c in m["candidates"]] == ["vessel_aground"]
+
+
+def test_list_signal_patterns_includes_flashing_and_geometry():
+    from colregs_mcp.sightings import list_signal_patterns
+    s = Sightings(patterns=[
+        {"id": "tri", "arrangement": ["green", "green", "green"], "condition": "night",
+         "geometry": "triangle",
+         "candidates": [{"situation": "mine_clearance", "rule": "R27"}]},
+    ])
+    out = list_signal_patterns(s)
+    assert "flashing_yellow" in out["flashing_lights"]
+    assert out["patterns"][0]["geometry"] == "triangle"
