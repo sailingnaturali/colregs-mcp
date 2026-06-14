@@ -42,28 +42,36 @@ class Rule:
 _SPECIAL = frozenset({
     "anchored", "vessel_aground", "not_under_command", "restricted_manoeuvrability",
     "constrained_by_draught", "fishing", "towing", "being_towed", "pilot_vessel",
-    "seaplane",
+    "seaplane", "mine_clearance", "air_cushion", "wig",
 })
 VESSEL_CLASSES = frozenset({"power_driven", "sailing"}) | _SPECIAL
 PROPULSIONS = frozenset({"sail", "machinery", "sail_and_machinery"})
 REGIMES = frozenset({"international", "inland", "canadian"})
 CONDITIONS = frozenset({"day", "night", "restricted_visibility"})
 
-# Reverse-identification vocabulary. Two disjoint token namespaces: light colours
-# (all-round assumed; sidelights/sternlight/masthead are confirmatory, never part
-# of the stacked identity) and day shapes. `kind` is inferred from the namespace.
+# Reverse-identification vocabulary. Two disjoint token namespaces: light tokens
+# (all-round colours assumed; sidelights/sternlight/masthead are confirmatory unless
+# a requirements row declares them diagnostic) and day shapes. Flashing lights carry
+# their own tokens. `kind` is inferred from the namespace.
 LIGHT_COLORS = frozenset({"red", "white", "green", "yellow"})
+FLASHING_LIGHTS = frozenset({"flashing_yellow", "flashing_red"})
+LIGHT_TOKENS = LIGHT_COLORS | FLASHING_LIGHTS
 DAY_SHAPES = frozenset({"ball", "diamond", "cylinder", "cone_up", "cone_down"})
-SIGNAL_TOKENS = LIGHT_COLORS | DAY_SHAPES
+SIGNAL_TOKENS = LIGHT_TOKENS | DAY_SHAPES
+
+# How an observed arrangement is laid out. `vertical` is the default; `triangle`
+# (mine-clearance) and `fore_and_aft` (towing, ≥50 m anchor lights) disambiguate
+# signals that share a token multiset.
+GEOMETRIES = frozenset({"vertical", "triangle", "fore_and_aft"})
 
 # Shapes are a daytime signal; lights are shown at night and in restricted visibility.
 SIGNAL_CONDITIONS = {"shapes": {"day"}, "lights": {"night", "restricted_visibility"}}
 
 
 def token_kind(token: str) -> str:
-    """'lights' for a colour token, 'shapes' for a day-shape token. Raises on unknown —
-    an unrecognized token must never be silently dropped from an identification."""
-    if token in LIGHT_COLORS:
+    """'lights' for a colour/flashing token, 'shapes' for a day-shape token. Raises on
+    unknown — an unrecognized token must never be silently dropped from an identification."""
+    if token in LIGHT_TOKENS:
         return "lights"
     if token in DAY_SHAPES:
         return "shapes"

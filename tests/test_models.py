@@ -74,3 +74,20 @@ def test_signal_conditions_pair_kinds_to_conditions():
     from colregs_mcp.models import SIGNAL_CONDITIONS
     assert SIGNAL_CONDITIONS["shapes"] == {"day"}
     assert SIGNAL_CONDITIONS["lights"] == {"night", "restricted_visibility"}
+
+def test_token_kind_classifies_flashing_lights():
+    from colregs_mcp.models import token_kind
+    assert token_kind("flashing_yellow") == "lights"
+    assert token_kind("flashing_red") == "lights"
+
+def test_flashing_tokens_are_signal_tokens():
+    from colregs_mcp.models import SIGNAL_TOKENS
+    assert {"flashing_yellow", "flashing_red"} <= SIGNAL_TOKENS
+
+def test_new_vessel_classes_present():
+    from colregs_mcp.models import VESSEL_CLASSES
+    assert {"mine_clearance", "air_cushion", "wig"} <= VESSEL_CLASSES
+
+def test_geometries_vocabulary():
+    from colregs_mcp.models import GEOMETRIES
+    assert GEOMETRIES == {"vertical", "triangle", "fore_and_aft"}
