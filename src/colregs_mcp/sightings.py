@@ -10,7 +10,7 @@ permutation (flipped order)."""
 from __future__ import annotations
 
 from colregs_mcp.models import (
-    DAY_SHAPES, FLASHING_LIGHTS, LIGHT_COLORS, SIGNAL_CONDITIONS, token_kind,
+    DAY_SHAPES, FLASHING_LIGHTS, GEOMETRIES, LIGHT_COLORS, SIGNAL_CONDITIONS, token_kind,
 )
 from colregs_mcp.vault import Requirements, Sightings
 
@@ -174,7 +174,7 @@ def list_signal_patterns(sightings: Sightings) -> dict:
         "light_colors": sorted(LIGHT_COLORS),
         "flashing_lights": sorted(FLASHING_LIGHTS),
         "day_shapes": sorted(DAY_SHAPES),
-        "geometries": ["vertical", "triangle", "fore_and_aft"],
+        "geometries": sorted(GEOMETRIES),
         "note": ("arrangement is an ordered list of tokens, top to bottom; all-round "
                  "lights assumed; geometry defaults to vertical"),
         "patterns": [
