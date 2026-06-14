@@ -95,3 +95,15 @@ def test_list_signal_patterns_includes_flashing_and_geometry():
     out = list_signal_patterns(s)
     assert "flashing_yellow" in out["flashing_lights"]
     assert out["patterns"][0]["geometry"] == "triangle"
+
+
+def test_real_vault_towing_yellow_over_white(tmp_path):
+    import pytest
+    from pathlib import Path
+    REAL = Path(__file__).resolve().parents[2] / "colregs-vault"
+    if not (REAL / "sightings.yaml").is_file():
+        pytest.skip("sibling colregs-vault not present")
+    from colregs_mcp.vault import Vault
+    v = Vault.load(REAL)
+    out = identify_signals(v.sightings, ["yellow", "white"], "night", geometry="fore_and_aft")
+    assert any(c["situation"] == "towing" for m in out["matches"] for c in m["candidates"])
