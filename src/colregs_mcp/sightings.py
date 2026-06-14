@@ -32,13 +32,14 @@ def _match(pattern: dict, match_type: str) -> dict:
         "match_type": match_type,
         "pattern_id": pattern["id"],
         "mnemonic": pattern.get("mnemonic"),
+        "geometry": pattern.get("geometry", "vertical"),
         "candidates": pattern["candidates"],
         "confirm": pattern.get("confirm", []),
     }
 
 
 def identify_signals(sightings: Sightings, arrangement, condition: str,
-                     regime: str | None = None) -> dict:
+                     regime: str | None = None, geometry: str | None = None) -> dict:
     arrangement = list(arrangement or [])
     if not arrangement:
         return {"error": "arrangement is empty", "matches": []}
@@ -54,8 +55,11 @@ def identify_signals(sightings: Sightings, arrangement, condition: str,
         pr = p.get("regime")
         return pr is None or regime is None or pr == regime
 
+    def geometry_ok(p: dict) -> bool:
+        return geometry is None or p.get("geometry", "vertical") == geometry
+
     pool = [p for p in sightings.patterns
-            if p["condition"] == condition and regime_ok(p)
+            if p["condition"] == condition and regime_ok(p) and geometry_ok(p)
             and _infer_kind(p["arrangement"]) == kind]
 
     exact, superset, permutation = [], [], []

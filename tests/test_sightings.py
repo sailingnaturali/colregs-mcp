@@ -56,3 +56,30 @@ def test_list_signal_patterns_returns_vocabulary_and_catalog():
     assert entry["situations"] == ["not_under_command"]
     assert entry["arrangement"] == ["red", "red"]
     assert entry["confirm"]  # confirm cues are surfaced for browsing
+
+
+from colregs_mcp.vault import Sightings
+
+def _geo_catalog():
+    return Sightings(patterns=[
+        {"id": "aground-day", "arrangement": ["ball", "ball", "ball"], "condition": "day",
+         "candidates": [{"situation": "vessel_aground", "rule": "R30"}]},   # geometry defaults vertical
+        {"id": "minesweep-day", "arrangement": ["ball", "ball", "ball"], "condition": "day",
+         "geometry": "triangle",
+         "candidates": [{"situation": "mine_clearance", "rule": "R27"}]},
+    ])
+
+def test_geometry_omitted_returns_both_with_geometry_labels():
+    out = identify_signals(_geo_catalog(), ["ball", "ball", "ball"], "day")
+    sits = {c["situation"] for m in out["matches"] for c in m["candidates"]}
+    geos = {m["geometry"] for m in out["matches"]}
+    assert sits == {"vessel_aground", "mine_clearance"}
+    assert geos == {"vertical", "triangle"}
+
+def test_geometry_given_filters_to_matching_geometry():
+    out = identify_signals(_geo_catalog(), ["ball", "ball", "ball"], "day", geometry="triangle")
+    assert [c["situation"] for m in out["matches"] for c in m["candidates"]] == ["mine_clearance"]
+
+def test_geometry_defaults_vertical_when_pattern_omits_it():
+    out = identify_signals(_geo_catalog(), ["ball", "ball", "ball"], "day", geometry="vertical")
+    assert [c["situation"] for m in out["matches"] for c in m["candidates"]] == ["vessel_aground"]
