@@ -4,14 +4,15 @@ MCP server for the navigation rules: queryable rule text plus deterministic requ
 
 ## Overview
 
-`colregs-mcp` exposes five tools split across two layers:
+`colregs-mcp` exposes seven tools split across three layers:
 
 | Layer | Tools | Determinism |
 |---|---|---|
 | Reference | `get_rule`, `search_rules` | Vault-sourced prose; deterministic given vault state |
 | Safety | `resolve_regime`, `required_signals`, `check_compliance` | Fully deterministic; driven by curated `requirements.yaml` |
+| Reverse identification | `identify_signals`, `list_signal_patterns` | Deterministic token matching against curated `sightings.yaml` |
 
-The reference layer surfaces the rule text from the markdown vault and is only as authoritative as the vault content. The safety layer — `resolve_regime`, `required_signals`, `check_compliance` — is driven exclusively by `requirements.yaml`, a curated, human-reviewed data file that must be verified against the official rules before use in any operational context.
+The reference layer surfaces the rule text from the markdown vault and is only as authoritative as the vault content. The safety layer — `resolve_regime`, `required_signals`, `check_compliance` — is driven exclusively by `requirements.yaml`, a curated, human-reviewed data file that must be verified against the official rules before use in any operational context. The reverse-identification layer maps an observed light/shape arrangement to candidate vessel states by deterministic token matching against `sightings.yaml`; like the safety layer it is only as authoritative as that curated, human-reviewed data.
 
 ---
 
