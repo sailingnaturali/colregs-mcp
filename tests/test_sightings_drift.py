@@ -73,3 +73,42 @@ def test_signal_token_requires_colour_delimiter():
     assert _signal_token("all_round_red") == "red"
     assert _signal_token("all_round_red_upper") == "red"
     assert _signal_token("all_round_reddish") is None
+
+def test_explicit_token_makes_sector_light_diagnostic():
+    # towing's yellow towing light + sternlight (declared white) form a [yellow, white] band.
+    reqs = Requirements(entries=[
+        {"id": "towing-stern", "match": {"situation": "towing", "condition": "night"},
+         "lights": [{"id": "towing_light", "token": "yellow", "rule": "R24"},
+                    {"id": "sternlight", "token": "white", "rule": "R24"}]},
+    ])
+    ok = Sightings(patterns=[
+        {"id": "tow-aft", "arrangement": ["yellow", "white"], "condition": "night",
+         "candidates": [{"situation": "towing", "rule": "R24"}]},
+    ])
+    assert sightings_drift(ok, reqs) == []
+
+def test_null_token_suppresses_heuristic():
+    # aground shows two reds + an anchor light; token:null keeps the anchor light out of
+    # the band so the recognizable signal stays [red, red] (not [red, red, white]).
+    reqs = Requirements(entries=[
+        {"id": "aground", "match": {"situation": "vessel_aground", "condition": "night"},
+         "lights": [{"id": "all_round_red_upper", "rule": "R30"},
+                    {"id": "all_round_red_lower", "rule": "R30"},
+                    {"id": "anchor_light", "token": None, "rule": "R30"}]},
+    ])
+    ok = Sightings(patterns=[
+        {"id": "ag", "arrangement": ["red", "red"], "condition": "night",
+         "candidates": [{"situation": "vessel_aground", "rule": "R30"}]},
+    ])
+    assert sightings_drift(ok, reqs) == []
+
+def test_flashing_token_band():
+    reqs = Requirements(entries=[
+        {"id": "ac", "match": {"situation": "air_cushion", "condition": "night"},
+         "lights": [{"id": "fy", "token": "flashing_yellow", "rule": "R23"}]},
+    ])
+    ok = Sightings(patterns=[
+        {"id": "acs", "arrangement": ["flashing_yellow"], "condition": "night",
+         "candidates": [{"situation": "air_cushion", "rule": "R23"}]},
+    ])
+    assert sightings_drift(ok, reqs) == []

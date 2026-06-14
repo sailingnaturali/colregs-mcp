@@ -90,6 +90,15 @@ def _signal_token(sig_id: str) -> str | None:
     return _SHAPE_TOKENS.get(sig_id)
 
 
+def _diagnostic_token(sig: dict) -> str | None:
+    """The reverse-ID token for one requirements signal. An explicit `token` key wins
+    (a value, or null to force 'not diagnostic'); otherwise fall back to the all-round
+    id heuristic."""
+    if "token" in sig:
+        return sig["token"]
+    return _signal_token(sig["id"])
+
+
 def _entry_token_bands(entry: dict) -> list[list[str]]:
     """The sorted diagnostic-token multiset(s) for one requirements entry. An entry
     with `light_options` yields one band per alternative group (the vessel shows its
@@ -101,7 +110,7 @@ def _entry_token_bands(entry: dict) -> list[list[str]]:
     bands: list[list[str]] = []
     for group in groups:
         sigs = base + list(group)
-        tokens = sorted(t for sig in sigs if (t := _signal_token(sig["id"])) is not None)
+        tokens = sorted(t for sig in sigs if (t := _diagnostic_token(sig)) is not None)
         bands.append(tokens)
     return bands
 
