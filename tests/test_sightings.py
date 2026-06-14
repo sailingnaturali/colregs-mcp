@@ -107,3 +107,18 @@ def test_real_vault_towing_yellow_over_white(tmp_path):
     v = Vault.load(REAL)
     out = identify_signals(v.sightings, ["yellow", "white"], "night", geometry="fore_and_aft")
     assert any(c["situation"] == "towing" for m in out["matches"] for c in m["candidates"])
+
+
+def test_real_vault_three_ball_geometry_collision(tmp_path):
+    import pytest
+    from pathlib import Path
+    REAL = Path(__file__).resolve().parents[2] / "colregs-vault"
+    if not (REAL / "sightings.yaml").is_file():
+        pytest.skip("sibling colregs-vault not present")
+    from colregs_mcp.vault import Vault
+    v = Vault.load(REAL)
+    both = identify_signals(v.sightings, ["ball", "ball", "ball"], "day")
+    sits = {c["situation"] for m in both["matches"] for c in m["candidates"]}
+    assert {"vessel_aground", "mine_clearance"} <= sits
+    tri = identify_signals(v.sightings, ["ball", "ball", "ball"], "day", geometry="triangle")
+    assert [c["situation"] for m in tri["matches"] for c in m["candidates"]] == ["mine_clearance"]
