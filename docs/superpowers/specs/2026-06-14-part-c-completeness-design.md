@@ -102,6 +102,11 @@ Towing's distributed identity is modelled with existing mechanisms:
 | Sailing optional masthead | `[red, green]` night | vertical | sailing | 25(c) |
 | CBD by day | `[cylinder]` day | vertical | constrained_by_draught | 28 |
 | Fishing by day | `[cone_down, cone_up]` day | vertical | fishing | 26(c) |
+| Fishing gear >150 m by day | `[cone_up]` day | vertical | fishing | 26(c)(ii) |
+| Fishing — shooting nets | `[white, white]` night | vertical | fishing | Annex II §2(a) |
+| Fishing — hauling nets | `[white, red]` night | vertical | fishing | Annex II §2(b) |
+| Fishing — net fast on obstruction | `[red, red]` night | vertical | fishing | Annex II §2(c) |
+| Fishing — purse-seine hampered | `[flashing_yellow, flashing_yellow]` night | vertical | fishing | Annex II §3 |
 | Towing masthead (≤200 m) | `[white, white]` night | vertical | towing | 24(a) |
 | Towing masthead (>200 m) | `[white, white, white]` night | vertical | towing | 24(a),(c) |
 | Towing light aft | `[yellow, white]` night | fore_and_aft | towing | 24(a) |
@@ -119,21 +124,50 @@ Towing's distributed identity is modelled with existing mechanisms:
 `vessel_aground` night requirements band of two all-round reds (`token: red`, the
 anchor light non-diagnostic) keeps drift `[red, red]`-consistent.
 
+## Fishing — additional signals (R26(c)(ii) + Annex II)
+
+The core fishing signals (trawling green-over-white, other red-over-white, the day
+two-cones) stay as they are. These add the supplementary signals.
+
+- **Gear extending >150 m (R26(c)(ii)).** The *day* cone-apex-up `[cone_up]`
+  becomes a first-class pattern (shown toward the outlying gear, in addition to the
+  two-cones shape). The *night* gear all-round white stays a **confirm cue** on the
+  fishing patterns — a lone all-round white is indistinguishable from an anchor
+  light without the accompanying fishing lights, so it is not independently
+  diagnostic.
+- **Annex II close-proximity signals** are mutually-exclusive operational states a
+  trawler shows *in addition* to its base lights. They are modelled as a single
+  `fishing` night requirements entry with `light_options` groups — drift yields one
+  band per state — so the forward tool reads them as alternatives, not a merge:
+  - shooting nets → `[white, white]` (Annex II §2(a))
+  - hauling nets → `[white, red]` (Annex II §2(b))
+  - net fast on an obstruction → `[red, red]` (Annex II §2(c))
+  - purse-seine hampered by gear → `[flashing_yellow, flashing_yellow]`, alternating
+    (Annex II §3) — the "alternating every second" detail rides in the confirm cue.
+- **Fishing at anchor.** No new arrangement — a fishing vessel at anchor shows the
+  same fishing lights/shapes. Captured as a **confirm cue** on the fishing patterns:
+  fishing signals do not imply making way.
+
 ## Collisions and their discriminators
 
-All resolved by an existing-style discriminator — no new tie-break logic:
+All resolved by an existing-style discriminator — geometry, top/bottom order, or
+multiple `candidates` + confirm — no new tie-break logic:
 
-- `[white, white]`: **vertical** → towing; **fore_and_aft** → anchored ≥50 m.
+- `[white, white]`: **vertical** → towing *or* fishing-shooting-nets;
+  **fore_and_aft** → anchored ≥50 m. (Towing vs fishing by confirm: trawling
+  green-over-white also shown → fishing; towing config + making way → towing.)
+- `[white, red]`: pilot *or* fishing-hauling-nets (confirm: pilot station vs the
+  trawling lights also shown). Note `[red, white]` (fishing other-than-trawling)
+  stays distinct by order.
+- `[red, red]`: NUC *or* aground *or* fishing-net-fast (multi-candidate + confirm).
 - `[ball, ball, ball]`: **vertical** → aground; **triangle** → mine-clearance.
-- `[red, red]`: NUC *or* aground (multi-candidate + confirm — anchor lights and
-  not making way → aground; making way → NUC).
-- `[yellow, white]`, `[red, green]`, `[flashing_yellow]`, `[flashing_red]`: unique.
+- `[yellow, white]`, `[red, green]`, `[flashing_yellow]`, `[flashing_red]`,
+  `[flashing_yellow, flashing_yellow]`, `[cone_up]`: unique.
 
 ## Out of scope (YAGNI)
 
-- **Fishing gear extending >150 m** (R26(c)(ii)) and **pushing / towing alongside**
-  (R24(c)) fold into **confirm cues** on their parent patterns — they are
-  directional or variant, not distinct stacked pictures.
+- **Pushing / towing alongside** (R24(c)) folds into a **confirm cue** on the towing
+  masthead pattern — a variant, not a distinct stacked picture.
 - No range/visibility geometry, no bearing/aspect maths, no AIS fusion (unchanged
   from the base design).
 
