@@ -122,3 +122,28 @@ def test_real_vault_three_ball_geometry_collision(tmp_path):
     assert {"vessel_aground", "mine_clearance"} <= sits
     tri = identify_signals(v.sightings, ["ball", "ball", "ball"], "day", geometry="triangle")
     assert [c["situation"] for m in tri["matches"] for c in m["candidates"]] == ["mine_clearance"]
+
+
+def test_real_vault_red_red_three_candidates(tmp_path):
+    import pytest
+    from pathlib import Path
+    REAL = Path(__file__).resolve().parents[2] / "colregs-vault"
+    if not (REAL / "sightings.yaml").is_file():
+        pytest.skip("sibling colregs-vault not present")
+    from colregs_mcp.vault import Vault
+    v = Vault.load(REAL)
+    out = identify_signals(v.sightings, ["red", "red"], "night")
+    sits = {c["situation"] for m in out["matches"] for c in m["candidates"]}
+    assert {"not_under_command", "vessel_aground", "fishing"} <= sits
+
+def test_real_vault_white_red_pilot_and_fishing(tmp_path):
+    import pytest
+    from pathlib import Path
+    REAL = Path(__file__).resolve().parents[2] / "colregs-vault"
+    if not (REAL / "sightings.yaml").is_file():
+        pytest.skip("sibling colregs-vault not present")
+    from colregs_mcp.vault import Vault
+    v = Vault.load(REAL)
+    out = identify_signals(v.sightings, ["white", "red"], "night")
+    sits = {c["situation"] for m in out["matches"] for c in m["candidates"]}
+    assert {"pilot_vessel", "fishing"} <= sits
