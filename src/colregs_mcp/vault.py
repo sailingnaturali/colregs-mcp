@@ -27,8 +27,13 @@ def vault_path() -> Path:
 def _validate_signal_tokens(ident: str, entry: dict) -> None:
     """A requirements signal may declare an explicit reverse-ID `token`; if present it
     must be a known signal token (or null, meaning 'not diagnostic')."""
-    groups = [entry.get("lights", []), entry.get("shapes", [])]
-    groups += list(entry.get("light_options", []))
+    groups = [entry.get("lights") or [], entry.get("shapes") or []]
+    options = entry.get("light_options") or []
+    for opt in options:
+        if not isinstance(opt, list):
+            raise ValueError(f"requirements.yaml: {ident} light_options must be a list of "
+                             f"groups (lists), got {opt!r}")
+        groups.append(opt)
     for group in groups:
         for sig in group:
             if isinstance(sig, dict) and "token" in sig:

@@ -153,3 +153,16 @@ def test_requirements_rejects_unknown_token(tmp_path):
         encoding="utf-8")
     with pytest.raises(ValueError, match="unknown token"):
         Vault.load(tmp_path)
+
+def test_requirements_accepts_null_token(tmp_path):
+    (tmp_path / "requirements.yaml").write_text(
+        "version: 1\n"
+        "entries:\n"
+        "  - id: aground-like\n"
+        "    match: { situation: vessel_aground, condition: night }\n"
+        "    lights:\n"
+        "      - { id: all_round_red_upper, rule: 'Rule 30' }\n"
+        "      - { id: anchor_light, token: null, rule: 'Rule 30' }\n",
+        encoding="utf-8")
+    v = Vault.load(tmp_path)  # must not raise
+    assert v.requirements.entries[0]["id"] == "aground-like"

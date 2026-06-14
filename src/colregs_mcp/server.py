@@ -110,9 +110,10 @@ def build_server(vault: Vault) -> Server:
                                  "description": "layout, if known: vertical (default), triangle, or fore_and_aft"},
                 }, "required": ["arrangement", "condition"]}),
             types.Tool(name="list_signal_patterns",
-                description=("Browse the canonical token vocabulary (light colours, day shapes) and "
-                             "the catalog of known sighting patterns — use it to find the exact tokens "
-                             "to pass to identify_signals."),
+                description=("The canonical token vocabulary (light colours, flashing lights, "
+                             "day shapes) and the catalog of known sighting patterns with their "
+                             "geometry — browse this to learn the exact tokens (e.g. flashing_red "
+                             "for a WIG craft) and layouts to pass to identify_signals."),
                 inputSchema={"type": "object", "properties": {}}),
         ]
 

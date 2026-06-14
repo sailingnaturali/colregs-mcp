@@ -111,7 +111,7 @@ def _entry_token_bands(entry: dict) -> list[list[str]]:
     mandatory lights plus exactly one option group); otherwise a single band. Non-
     diagnostic signals drop out, so an all-sector configuration (e.g. a plain sailing
     vessel) yields an empty band that only an empty arrangement could match."""
-    base = list(entry.get("lights", [])) + list(entry.get("shapes", []))
+    base = list(entry.get("lights") or []) + list(entry.get("shapes") or [])
     groups = entry.get("light_options") or [[]]
     bands: list[list[str]] = []
     for group in groups:
