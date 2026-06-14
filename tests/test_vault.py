@@ -114,3 +114,42 @@ def test_sightings_rejects_missing_condition(tmp_path):
             "  - id: no-condition\n"
             "    arrangement: [red, red]\n"
             "    candidates: [{ situation: not_under_command, rule: 'Rule 27' }]\n"))
+
+def test_sightings_accepts_geometry(tmp_path):
+    (tmp_path / "sightings.yaml").write_text(
+        "version: 1\n"
+        "patterns:\n"
+        "  - id: tri\n"
+        "    arrangement: [green, green, green]\n"
+        "    condition: night\n"
+        "    geometry: triangle\n"
+        "    candidates: [{ situation: mine_clearance, rule: 'Rule 27(f)' }]\n",
+        encoding="utf-8")
+    v = Vault.load(tmp_path)
+    assert v.sightings.patterns[0]["geometry"] == "triangle"
+
+def test_sightings_rejects_unknown_geometry(tmp_path):
+    import pytest
+    (tmp_path / "sightings.yaml").write_text(
+        "version: 1\n"
+        "patterns:\n"
+        "  - id: bad-geo\n"
+        "    arrangement: [red, red]\n"
+        "    condition: night\n"
+        "    geometry: sideways\n"
+        "    candidates: [{ situation: not_under_command, rule: 'Rule 27' }]\n",
+        encoding="utf-8")
+    with pytest.raises(ValueError, match="unknown geometry"):
+        Vault.load(tmp_path)
+
+def test_requirements_rejects_unknown_token(tmp_path):
+    import pytest
+    (tmp_path / "requirements.yaml").write_text(
+        "version: 1\n"
+        "entries:\n"
+        "  - id: bad-token\n"
+        "    match: { situation: towing, condition: night }\n"
+        "    lights: [{ id: x, token: chartreuse, rule: 'Rule 24' }]\n",
+        encoding="utf-8")
+    with pytest.raises(ValueError, match="unknown token"):
+        Vault.load(tmp_path)

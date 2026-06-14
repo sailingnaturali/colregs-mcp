@@ -11,7 +11,8 @@ from pathlib import Path
 import yaml
 
 from colregs_mcp.models import (
-    CONDITIONS, REGIMES, SIGNAL_CONDITIONS, SIGNAL_TOKENS, SITUATIONS, Rule, token_kind,
+    CONDITIONS, GEOMETRIES, REGIMES, SIGNAL_CONDITIONS, SIGNAL_TOKENS, SITUATIONS,
+    Rule, token_kind,
 )
 
 logger = logging.getLogger(__name__)
@@ -21,6 +22,20 @@ _MATCH_KEYS = {"situation", "condition", "regime", "length_lt", "length_gte"}
 
 def vault_path() -> Path:
     return Path(os.environ.get("COLREGS_VAULT_PATH", "~/.colregs-vault")).expanduser()
+
+
+def _validate_signal_tokens(ident: str, entry: dict) -> None:
+    """A requirements signal may declare an explicit reverse-ID `token`; if present it
+    must be a known signal token (or null, meaning 'not diagnostic')."""
+    groups = [entry.get("lights", []), entry.get("shapes", [])]
+    groups += list(entry.get("light_options", []))
+    for group in groups:
+        for sig in group:
+            if isinstance(sig, dict) and "token" in sig:
+                tok = sig["token"]
+                if tok is not None and tok not in SIGNAL_TOKENS:
+                    raise ValueError(f"requirements.yaml: {ident} signal {sig.get('id')!r} "
+                                     f"has unknown token {tok!r}; allowed: {sorted(SIGNAL_TOKENS)}")
 
 
 def _validate_entries(entries: list) -> None:
@@ -48,6 +63,7 @@ def _validate_entries(entries: list) -> None:
         regime = match.get("regime")
         if regime is not None and regime != "any" and regime not in REGIMES:
             raise ValueError(f"requirements.yaml: {ident} has unknown regime {regime!r}")
+        _validate_signal_tokens(ident, entry)
 
 
 def _validate_sightings(patterns: list) -> None:
@@ -79,6 +95,10 @@ def _validate_sightings(patterns: list) -> None:
         regime = p.get("regime")
         if regime is not None and regime not in REGIMES:
             raise ValueError(f"sightings.yaml: {ident} has unknown regime {regime!r}")
+        geometry = p.get("geometry")
+        if geometry is not None and geometry not in GEOMETRIES:
+            raise ValueError(f"sightings.yaml: {ident} has unknown geometry {geometry!r}; "
+                             f"allowed: {sorted(GEOMETRIES)}")
         cands = p.get("candidates")
         if not isinstance(cands, list) or not cands:
             raise ValueError(f"sightings.yaml: {ident} has no candidates")
